@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Khelo Bangladesh - Tournament App</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-material-ui/material-ui.min.css" rel="stylesheet">
+
+<style>
+    :root {
+        --primary: #0052ff;
+        --bg-color: #08080c;
+        --card-bg: #12121a;
+        --card-border: #1a1a28;
+        --text-white: #ffffff;
+        --text-gray: #8f92a1;
+        --success: #00e676;
+        --danger: #ff3d71;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Hind Siliguri', 'Lato', sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg-color); color: var(--text-white); padding-bottom: 90px; overflow-x: hidden; min-height: 100vh; }
+
+    #auth-view { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); z-index: 5000; display: flex; flex-direction: column; overflow-y: auto; }
+    .auth-top-section { height: 35vh; width: 100%; background-color: var(--bg-color); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; }
+    .auth-title-large { font-size: 28px; font-weight: 800; margin-bottom: 5px; }
+    .auth-subtitle { font-size: 14px; color: var(--text-gray); }
+    .auth-bottom-card { background-color: var(--card-bg); border: 1px solid var(--card-border); min-height: 65vh; width: 100%; border-top-left-radius: 30px; border-top-right-radius: 30px; padding: 30px 25px; display: flex; flex-direction: column; }
+    .auth-card-title { font-size: 24px; font-weight: 800; text-align: center; margin-bottom: 25px; }
+    .auth-input-group { margin-bottom: 15px; position: relative; }
+    .auth-input-field { width: 100%; padding: 15px; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); border-radius: 12px; font-size: 14px; outline: none; color: white; }
+    .auth-black-btn { width: 100%; background-color: var(--primary); color: white; padding: 16px; border-radius: 30px; border: none; font-size: 16px; font-weight: 800; text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 15px rgba(0,82,255,0.4); margin-bottom: 15px; }
+    .auth-footer-link { text-align: center; font-size: 13px; color: var(--text-gray); margin-top: 10px; }
+    .auth-footer-link span { color: var(--primary); font-weight: 700; cursor: pointer; }
+
+    .app-section { display: none; min-height: 100vh; }
+    .app-section.active { display: block; }
+
+    .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 65px; background: #0d0d14; display: flex; justify-content: space-around; align-items: center; z-index: 1000; border-top: 1px solid var(--card-border); }
+    .tab-item { display: flex; flex-direction: column; align-items: center; width: 20%; color: var(--text-gray); cursor: pointer; }
+    .tab-item span { font-size: 10px; margin-top: 2px; font-weight: 600; }
+    .tab-item.active span { font-weight: 900; color: var(--primary); }
+    .tab-item.active .tab-icon-box { background-color: rgba(0,82,255,0.15); width: 60px; height: 32px; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
+
+    #global-loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; display: none; justify-content: center; align-items: center; }
+    .spinner { width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.3); border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div id="global-loader"><div class="spinner"></div></div>
+
+<!-- AUTH VIEW -->
+<div id="auth-view" class="active">
+    <div id="login-container" style="width:100%; height:100%; display:flex; flex-direction:column;">
+        <div class="auth-top-section">
+            <div class="auth-title-large">Welcome Back</div>
+            <div class="auth-subtitle">Sign in to your account</div>
+        </div>
+        <div class="auth-bottom-card">
+            <div class="auth-card-title">Sign In</div>
+            <div class="auth-input-group"><input type="email" id="login-email" class="auth-input-field" placeholder="Email Address"></div>
+            <div class="auth-input-group"><input type="password" id="login-pass" class="auth-input-field" placeholder="Password"></div>
+            <button class="auth-black-btn" onclick="window.emailLogin()">Sign In</button>
+            <div class="auth-footer-link">I'm a new user <span onclick="window.toggleAuthMode('register')">Register Now</span></div>
+        </div>
+    </div>
+    
+    <div id="register-container" style="width:100%; height:100%; display:none; flex-direction:column;">
+        <div class="auth-top-section">
+            <div class="auth-title-large">Let's Start</div>
+            <div class="auth-subtitle">Create an account</div>
+        </div>
+        <div class="auth-bottom-card">
+            <div class="auth-card-title">Sign Up</div>
+            <div class="auth-input-group"><input type="text" id="reg-username" class="auth-input-field" placeholder="UserName"></div>
+            <div class="auth-input-group"><input type="email" id="reg-email" class="auth-input-field" placeholder="Email Address"></div>
+            <div class="auth-input-group"><input type="number" id="reg-phone" class="auth-input-field" placeholder="Mobile Number"></div>
+            <div class="auth-input-group"><input type="password" id="reg-pass" class="auth-input-field" placeholder="Password"></div>
+            <button class="auth-black-btn" onclick="window.emailRegister()">Sign Up</button>
+            <div class="auth-footer-link">Already have an account <span onclick="window.toggleAuthMode('login')">Sign in here</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<main id="main-content" style="display:none;">
+    <section id="tab-home-view" class="app-section active">
+        <div style="padding: 20px; text-align: center;">
+            <h2>Home / Tournaments</h2>
+            <p>Welcome to Khelo Bangladesh Tournament Platform</p>
+            <button onclick="window.handleLogout()" style="margin-top: 20px; padding: 10px 20px; background: var(--danger); border: none; color: white; border-radius: 8px; font-weight: bold;">Logout</button>
+        </div>
+    </section>
+</main>
+
+<div class="tab-bar hidden">
+    <div class="tab-item active" onclick="window.showTab('home')" id="nav-home">
+        <div class="tab-icon-box"><i class="fas fa-gamepad"></i></div>
+        <span>Play</span>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue, push, update, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDya0Jd6XkK0db6tDMU-V7xM7dy5gKBk4k",
+      authDomain: "ai-turnament-app.firebaseapp.com",
+      databaseURL: "https://ai-turnament-app-default-rtdb.firebaseio.com",
+      projectId: "ai-turnament-app",
+      storageBucket: "ai-turnament-app.firebasestorage.app",
+      messagingSenderId: "478532172993",
+      appId: "1:478532172993:web:1f0d1a00796aaf2cdd6840",
+      measurementId: "G-PVHFQFF7NQ"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+
+    window.emailLogin = () => {
+        const e = document.getElementById('login-email').value;
+        const p = document.getElementById('login-pass').value;
+        if(!e || !p) return Swal.fire('Error', "Please fill all fields", 'error');
+        signInWithEmailAndPassword(auth, e, p).catch(err => Swal.fire('Error', err.message, 'error'));
+    };
+    
+    window.emailRegister = () => {
+        const n = document.getElementById('reg-username').value;
+        const e = document.getElementById('reg-email').value;
+        const ph = document.getElementById('reg-phone').value;
+        const p = document.getElementById('reg-pass').value;
+        if(!n || !e || !ph || !p) return Swal.fire('Error', "Please fill all fields", 'error');
+
+        createUserWithEmailAndPassword(auth, e, p).then((c)=> {
+            updateProfile(c.user, {displayName: n});
+            set(ref(db, 'users/'+c.user.uid), {username: n, email: e, phone: ph, deposit: 0, winning: 0});
+        }).catch(err => Swal.fire('Error', err.message, 'error'));
+    };
+    
+    window.handleLogout = () => signOut(auth);
+    window.toggleAuthMode = (mode) => {
+        if(mode === 'login') {
+            document.getElementById('login-container').style.display = 'flex';
+            document.getElementById('register-container').style.display = 'none';
+        } else {
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('register-container').style.display = 'flex';
+        }
+    };
+
+    onAuthStateChanged(auth, u => {
+        if(u) {
+            document.getElementById('auth-view').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+            document.querySelector('.tab-bar').classList.remove('hidden');
+        } else {
+            document.getElementById('main-content').style.display = 'none';
+            document.querySelector('.tab-bar').classList.add('hidden');
+            document.getElementById('auth-view').style.display = 'flex';
+        }
+    });
+</script>
+</body>
+</html>
